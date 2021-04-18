@@ -1,12 +1,13 @@
 package br.uam.rmi;
 
+import com.sun.source.util.SourcePositions;
+
 import java.rmi.RemoteException;
 import java.util.ArrayList;
-import java.util.List;
 
 public class Game implements GameInterface {
 
-    private static Player playerCache;
+    private static ArrayList<Player> playersCache = new ArrayList<>();
 
     public Game() throws RemoteException {
         super();
@@ -14,12 +15,29 @@ public class Game implements GameInterface {
     }
 
     @Override
-    public int shutdown() throws RemoteException {
-        return 1;
+    public int shutdown(String playerId) throws RemoteException {
+        for (Player player : playersCache) {
+            if (player.getId().contains(playerId)) {
+                return player.getBalance();
+            }
+        }
+        return 404;
     }
 
     @Override
-    public Battle battleSingle(Weapons weapon) throws RemoteException {
+    public String newPlayer() throws RemoteException {
+        try {
+            Player player = new Player();
+            playersCache.add(player);
+            return player.getId();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    @Override
+    public Battle battleSingle(String playerId, Weapons weapon) throws RemoteException {
 
         System.out.println("Let's Go!");
 
@@ -28,46 +46,56 @@ public class Game implements GameInterface {
         var weapons = new ArrayList<Weapons>();
 
         Battle battle = new Battle(weapons);
-        Player player = new Player();
 
+        System.out.println("Player Weapon: " + weapon + " X NPC Weapon: " + npcWeapon);
 
+        for (Player player : playersCache) {
+            if (player.getId().contains(playerId)) {
+                if (weapon != npcWeapon) {
 
-        System.out.println(npcWeapon + " X " + weapon);
+                    var winnings = player.getWon();
 
-        var winnings = player.getWon();
+                    switch (weapon) {
+                        case Papel:
+                            if (npcWeapon == Weapons.Pedra) {
+                                player.setWon();
+                            } else {
+                                player.setDefeats();
+                            }
+                            break;
+                        case Pedra:
+                            if (npcWeapon == Weapons.Tesoura) {
+                                player.setWon();
+                            } else {
+                                player.setDefeats();
+                            }
+                            break;
+                        case Tesoura:
+                            if (npcWeapon == Weapons.Papel) {
+                                player.setWon();
+                            } else {
+                                player.setDefeats();
+                            }
+                            break;
+                    }
 
-        switch (weapon) {
-            case Papel:
-                if (npcWeapon == Weapons.Pedra) {
-                    player.setWon();
+                    var winner = (player.getWon() > winnings) ? "player" : "npc";
+
+                    System.out.println((player.getWon() > winnings) ? "Player Venceu! =) "
+                            : "NPC Venceu! =( ");
+
+                    System.out.println("Placar Vitórias: " + player.getWon() + " Balance: " + player.getBalance());
+
+                    battle.setWinner(winner);
+
                 } else {
-                    player.setDefeats();
+                    System.out.println("Empate Ô_Ô");
                 }
-                break;
-            case Pedra:
-                if (npcWeapon == Weapons.Tesoura) {
-                    player.setWon();
-                } else {
-                    player.setDefeats();
-                }
-                break;
-            case Tesoura:
-                if (npcWeapon == Weapons.Papel) {
-                    player.setWon();
-                } else {
-                    player.setDefeats();
-                }
-                break;
+                System.out.println(" ---------------------------------- ");
+
+                return battle;
+            }
         }
-
-        var winner = (player.getWon() > winnings) ? "player" : "npc";
-
-        System.out.println("Player Weapon: " + weapon + "   X   NPC Weapon: " + npcWeapon);
-        System.out.println((player.getWon() > winnings) ? "Player Venceu! =) " : "NPC Venceu! =( ");
-        System.out.println(" ---------------------------------- ");
-
-        battle.setWinner(winner);
-
-        return battle;
+        return null;
     }
 }

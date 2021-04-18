@@ -17,6 +17,12 @@ public interface GameInterface extends Remote{
         Single, Multiplayer;
     }
 
-    public int shutdown() throws RemoteException;
-    public Battle battleSingle(Weapons weapon) throws RemoteException;
+    //Desliga o jogo e retorna resultado do player
+    public int shutdown(String playerId) throws RemoteException;
+
+    //Instancia um novo jogador
+    public String newPlayer() throws RemoteException;
+
+    //Batalha modo Single
+    public Battle battleSingle(String playerId, Weapons weapon) throws RemoteException;
 }
