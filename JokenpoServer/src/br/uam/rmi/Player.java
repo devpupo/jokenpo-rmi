@@ -4,8 +4,8 @@ import java.util.UUID;
 
 public class Player {
     private  String id;
-    private  int won = 0;
-    private  int defeats = 0;
+    private  static int won = 0;
+    private  static int defeats = 0;
     private GameInterface.Weapons weapon;
 
     public Player() {
@@ -14,9 +14,9 @@ public class Player {
 
     public int getBalance() { return won - defeats; }
 
-    public GameInterface.Weapons getWeapon() { return weapon; }
+    public GameInterface.Weapons getWeapon() { return this.weapon; }
 
-    public String getId(){ return id; }
+    public String getId(){ return this.id; }
 
     public int getWon() { return won; }
 
