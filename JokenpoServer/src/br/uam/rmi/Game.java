@@ -99,6 +99,13 @@ public class Game implements GameInterface {
                     }
                     System.out.println(" ---------------------------------- ");
 
+                    for (Player player1 : playersCache) {
+
+                        System.out.println(player1.getId());
+                        System.out.println(player1.getWon());
+                    }
+
+
                     return battle;
                 }
             }
