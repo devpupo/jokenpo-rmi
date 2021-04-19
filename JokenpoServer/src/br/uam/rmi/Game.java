@@ -7,7 +7,8 @@ import java.util.ArrayList;
 
 public class Game implements GameInterface {
 
-    private static ArrayList<Player> playersCache = new ArrayList<>();
+    private static final ArrayList<Player> playersCache = new ArrayList<>();
+    private static final Battle battle = new Battle();
 
     public Game() throws RemoteException {
         super();
@@ -41,77 +42,99 @@ public class Game implements GameInterface {
     }
 
     @Override
-    public Battle battleSingle(String playerId, Weapons weapon) throws RemoteException {
+    public String battle(String playerId, Weapons weapon, GameMode mode) throws RemoteException {
 
         try {
-
             System.out.println("Let's Go!");
 
-            var npcWeapon = Weapons.getRandom();
+            Battle.BattlePlayers winner = Battle.BattlePlayers.Anyone;
+            Weapons counterattack = null;
 
-            var weapons = new ArrayList<Weapons>();
+            if (playersCache.isEmpty() && mode == GameMode.Multiplayer) {
+                battle.setWeapons(weapon);
+                battle.setAttacker(playersCache.get(0));
+                System.out.println("Aguardando próximo jogador...");
 
-            Battle battle = new Battle(weapons);
+            } else if (!playersCache.isEmpty() && mode == GameMode.Multiplayer) {
 
-            System.out.println("Player Weapon: " + weapon + " X NPC Weapon: " + npcWeapon);
-
-            for (Player player : playersCache) {
-                if (player.getId().contains(playerId)) {
-                    if (weapon != npcWeapon) {
-
-                        var winnings = player.getWon();
-
-                        switch (weapon) {
-                            case Papel:
-                                if (npcWeapon == Weapons.Pedra) {
-                                    player.setWon();
-                                } else {
-                                    player.setDefeats();
-                                }
-                                break;
-                            case Pedra:
-                                if (npcWeapon == Weapons.Tesoura) {
-                                    player.setWon();
-                                } else {
-                                    player.setDefeats();
-                                }
-                                break;
-                            case Tesoura:
-                                if (npcWeapon == Weapons.Papel) {
-                                    player.setWon();
-                                } else {
-                                    player.setDefeats();
-                                }
-                                break;
-                        }
-
-                        var winner = (player.getWon() > winnings) ? "player" : "npc";
-
-                        System.out.println((player.getWon() > winnings) ? "Player Venceu! =) "
-                                : "NPC Venceu! =( ");
-
-                        System.out.println("Placar Vitórias: " + player.getWon() + " Balance: " + player.getBalance());
-
-                        battle.setWinner(winner);
-
-                    } else {
-                        System.out.println("Empate Ô_Ô");
-                    }
-                    System.out.println(" ---------------------------------- ");
-
-                    for (Player player1 : playersCache) {
-
-                        System.out.println(player1.getId());
-                        System.out.println(player1.getWon());
-                    }
-
-
-                    return battle;
+                if (battle.getDefender() == null) {
+                    battle.setDefender(playersCache.get(0));
                 }
+
+                counterattack = weapon;
+
+                System.out.println("Player Weapon: " + battle.getAttacker().getWeapon()
+                        + " X Player2 Weapon: " + counterattack);
+
+                weapon = battle.getAttacker().getWeapon();
+
+                if (weapon != counterattack) {
+                    if (runBattle(weapon, counterattack)) {
+                        battle.setWonMatch(Battle.BattlePlayers.Attacker);
+                        winner = Battle.BattlePlayers.Attacker;
+                    } else {
+                        battle.setWonMatch(Battle.BattlePlayers.Defender);
+                        winner = Battle.BattlePlayers.Defender;
+                    }
+                } else {
+                    battle.setDrawMatch();
+                    System.out.println("Empate Ô_Ô");
+                }
+
+                System.out.println("Ganhador da partida foi: " + winner);
+                return (winner == Battle.BattlePlayers.Attacker) ?
+                        battle.getAttacker().getId() :
+                        battle.getDefender().getId();
+            }else{
+
+                //Modo de jogo SinglePlayer
+                battle.setAttacker(playersCache.get(0));
+                counterattack = Weapons.getRandom();
+
+                System.out.println("Player Weapon: " + battle.getAttacker().getWeapon()
+                        + " X NPC Weapon: " + counterattack);
+
+                if (weapon != counterattack) {
+                    if (runBattle(weapon, counterattack)) {
+                        battle.setWonMatch(Battle.BattlePlayers.Attacker);
+                        winner = Battle.BattlePlayers.Attacker;
+                    } else {
+                        battle.setWonMatch(Battle.BattlePlayers.Defender);
+                        winner = Battle.BattlePlayers.Defender;
+                    }
+                } else {
+                    battle.setDrawMatch();
+                    System.out.println("Empate Ô_Ô");
+                }
+
+                System.out.println("Ganhador da partida foi: " + winner);
+
+                return (winner == Battle.BattlePlayers.Attacker) ?
+                        battle.getAttacker().getId() :
+                        "NPC";
             }
+
+            System.out.println(" ---------------------------------- ");
+
+
         } catch (Exception e) {
             e.printStackTrace();
         }
         return null;
     }
+
+    //Verifica se o attack ganha
+    private boolean runBattle(Weapons attack, Weapons counterattack) {
+        switch (attack) {
+            case Papel:
+                return (counterattack == Weapons.Pedra);
+            case Pedra:
+                return (counterattack == Weapons.Tesoura);
+            case Tesoura:
+                return (counterattack == Weapons.Papel);
+            default:
+                return false;
+        }
+    }
+
 }

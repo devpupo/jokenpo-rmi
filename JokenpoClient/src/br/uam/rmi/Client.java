@@ -25,8 +25,8 @@ public class Client {
             int weaponId;
 
             do {
-                System.out.print("-> Escolha suas armas! ");
-                System.out.print("(1) Pedra (2) Papel (3) Tesoura (0) Placar Geral ");
+                System.out.print("-> Escolha suas armas! \n");
+                System.out.print("(1) Pedra (2) Papel (3) Tesoura (0) Placar Geral \n");
                 weaponId = Integer.parseInt(scan.nextLine());
 
                 if (ModeById(modeId) == GameInterface.GameMode.Single) {
