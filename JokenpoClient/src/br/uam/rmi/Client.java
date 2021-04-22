@@ -17,6 +17,7 @@ public class Client {
             System.out.print("******** Bem Vindo ao GAME [ JO-KEN-PO ] ******** \n");
             System.out.print("-> Escolha (1) SinglePlayer (2) MultiPlayer \n");
 
+            //Recebe o modo do jogo
             var modeId = Integer.parseInt(scan.nextLine());
 
             //Instancia um novo jogador
@@ -27,24 +28,39 @@ public class Client {
             do {
                 System.out.print("-> Escolha suas armas! \n");
                 System.out.print("(1) Pedra (2) Papel (3) Tesoura (0) Placar Geral \n");
+
+                //Recebe o ID da Arma
                 weaponId = Integer.parseInt(scan.nextLine());
 
-                if (ModeById(modeId) == GameInterface.GameMode.Single) {
+               if(weaponId != 0){
+                   //Envia para o servidor os dados de batalha
+                   var winnerId = objRemote.battle(playerId,
+                           WeaponById(weaponId),
+                           ModeById(modeId));
 
-                    Battle battle = objRemote.battleSingle(playerId,
-                            WeaponById(weaponId));
-
-                    var weapons = battle.getWeapons();
-
-                    System.out.println("Batalha: " + weapons.get(0) + " X " + weapons.get(1));
-                    System.out.println("Ganhador: " + battle.getWinner().toUpperCase());
-
-                } else {
-                    throw new Exception("Modo de jogo inválido!");
-                }
+                   //Retorna o ganhador da batalha atual
+                   if (winnerId.contains("draw")) {
+                       System.out.println("Empate! X_X \n");
+                   } else if (winnerId.contains(playerId)) {
+                       System.out.println("Você ganhou a batalha! =D \n");
+                   } else {
+                       System.out.println("Você perdeu a batalha! )= \n");
+                   }
+               }
 
 
-            } while (weaponId == 0);
+            } while (weaponId != 0);
+
+            //Encerra o jogo e retorna o ganhador final
+            var finalWinner = objRemote.shutdown(playerId);
+
+            if(finalWinner > 0){
+                System.out.println("GANHOOOOOOOOOUUUUUUUUU");
+            }else if(finalWinner < 0){
+                System.out.println("FALHOUUUUUUUUUUUUUU");
+            }else{
+                System.out.println("EMPATEEEEEEEEEEE");
+            }
 
             // Closing Scanner after the use
             scan.close();

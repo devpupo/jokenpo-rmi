@@ -9,7 +9,6 @@ public class Battle {
         Attacker, Defender, Anyone;
     }
 
-
     private static String winner;
     private static Player attacker;
     private static Player defender;
@@ -61,6 +60,5 @@ public class Battle {
     public Player getDefender() {
         return defender;
     }
-
 
 }

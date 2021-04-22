@@ -7,8 +7,9 @@ import java.util.ArrayList;
 
 public class Game implements GameInterface {
 
-    private static final ArrayList<Player> playersCache = new ArrayList<>();
-    private static final Battle battle = new Battle();
+    private static ArrayList<Player> playersCache = new ArrayList<>();
+    private static Battle battle = new Battle();
+    private static boolean conclude = true;
 
     public Game() throws RemoteException {
         super();
@@ -17,12 +18,26 @@ public class Game implements GameInterface {
 
     @Override
     public int shutdown(String playerId) throws RemoteException {
+
+        var balance = 0;
+
         try {
             for (Player player : playersCache) {
                 if (player.getId().contains(playerId)) {
-                    return player.getBalance();
+
+                    System.out.println(player.getWon());
+                    System.out.println(player.getDraw());
+
+                    playersCache.remove(player);
+
+                    balance = player.getBalance();
                 }
             }
+
+            //playersCache.clear();
+
+            return balance;
+
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -43,17 +58,17 @@ public class Game implements GameInterface {
 
     @Override
     public String battle(String playerId, Weapons weapon, GameMode mode) throws RemoteException {
-
         try {
             System.out.println("Let's Go!");
 
             Battle.BattlePlayers winner = Battle.BattlePlayers.Anyone;
             Weapons counterattack = null;
 
-            if (playersCache.isEmpty() && mode == GameMode.Multiplayer) {
+            if ((conclude || playersCache.isEmpty()) && mode == GameMode.Multiplayer) {
                 battle.setWeapons(weapon);
                 battle.setAttacker(playersCache.get(0));
                 System.out.println("Aguardando próximo jogador...");
+                conclude = false;
 
             } else if (!playersCache.isEmpty() && mode == GameMode.Multiplayer) {
 
@@ -81,17 +96,25 @@ public class Game implements GameInterface {
                     System.out.println("Empate Ô_Ô");
                 }
 
+                conclude = true;
+
                 System.out.println("Ganhador da partida foi: " + winner);
                 return (winner == Battle.BattlePlayers.Attacker) ?
                         battle.getAttacker().getId() :
                         battle.getDefender().getId();
-            }else{
+            } else {
+
+                if (battle.getDefender() == null) {
+                    battle.setDefender(new Player());
+                }
 
                 //Modo de jogo SinglePlayer
                 battle.setAttacker(playersCache.get(0));
+
+
                 counterattack = Weapons.getRandom();
 
-                System.out.println("Player Weapon: " + battle.getAttacker().getWeapon()
+                System.out.println("Player Weapon: " + weapon
                         + " X NPC Weapon: " + counterattack);
 
                 if (weapon != counterattack) {
@@ -105,6 +128,7 @@ public class Game implements GameInterface {
                 } else {
                     battle.setDrawMatch();
                     System.out.println("Empate Ô_Ô");
+                    return "draw";
                 }
 
                 System.out.println("Ganhador da partida foi: " + winner);
@@ -113,10 +137,7 @@ public class Game implements GameInterface {
                         battle.getAttacker().getId() :
                         "NPC";
             }
-
             System.out.println(" ---------------------------------- ");
-
-
         } catch (Exception e) {
             e.printStackTrace();
         }
