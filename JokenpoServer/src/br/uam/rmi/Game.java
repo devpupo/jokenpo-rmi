@@ -58,6 +58,8 @@ public class Game implements GameInterface {
 
     @Override
     public String battle(String playerId, Weapons weapon, GameMode mode) throws RemoteException {
+        String winnerId = null;
+
         try {
             System.out.println("Let's Go!");
 
@@ -65,13 +67,12 @@ public class Game implements GameInterface {
             Weapons counterattack = null;
 
             if ((conclude || playersCache.isEmpty()) && mode == GameMode.Multiplayer) {
-                battle.setWeapons(weapon);
                 battle.setAttacker(playersCache.get(0));
+                battle.getAttacker().setWeapon(weapon);
                 System.out.println("Aguardando próximo jogador...");
                 conclude = false;
 
             } else if (!playersCache.isEmpty() && mode == GameMode.Multiplayer) {
-
                 if (battle.getDefender() == null) {
                     battle.setDefender(playersCache.get(0));
                 }
@@ -99,11 +100,10 @@ public class Game implements GameInterface {
                 conclude = true;
 
                 System.out.println("Ganhador da partida foi: " + winner);
-                return (winner == Battle.BattlePlayers.Attacker) ?
+                winnerId = (winner == Battle.BattlePlayers.Attacker) ?
                         battle.getAttacker().getId() :
                         battle.getDefender().getId();
             } else {
-
                 if (battle.getDefender() == null) {
                     battle.setDefender(new Player());
                 }
@@ -141,7 +141,10 @@ public class Game implements GameInterface {
         } catch (Exception e) {
             e.printStackTrace();
         }
-        return null;
+
+        try { Thread.sleep (50000); } catch (InterruptedException ignored) {}
+
+        return winnerId;
     }
 
     //Verifica se o attack ganha

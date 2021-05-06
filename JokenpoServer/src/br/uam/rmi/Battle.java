@@ -12,14 +12,14 @@ public class Battle {
     private static String winner;
     private static Player attacker;
     private static Player defender;
-    private static ArrayList<GameInterface.Weapons> weapons;
+    private static ArrayList<GameInterface.Weapons> weapons = new ArrayList<>();
 
     public ArrayList<GameInterface.Weapons> getWeapons() {
         return weapons;
     }
 
     public void setWeapons(GameInterface.Weapons weapon) {
-        weapons.add(weapon);
+        this.weapons.add(weapon);
     }
 
     public void setDrawMatch() {
