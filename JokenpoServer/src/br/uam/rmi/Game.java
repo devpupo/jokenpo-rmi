@@ -10,6 +10,7 @@ public class Game implements GameInterface {
     private static ArrayList<Player> playersCache = new ArrayList<>();
     private static Battle battle = new Battle();
     private static boolean conclude = true;
+    private static String winnerId = "anyone";
 
     public Game() throws RemoteException {
         super();
@@ -20,6 +21,7 @@ public class Game implements GameInterface {
     public int shutdown(String playerId) throws RemoteException {
 
         var balance = 0;
+
 
         try {
             for (Player player : playersCache) {
@@ -34,7 +36,10 @@ public class Game implements GameInterface {
                 }
             }
 
-            //playersCache.clear();
+            playersCache = null;
+            battle = null;
+            conclude = true;
+            winnerId = null;
 
             return balance;
 
@@ -57,8 +62,12 @@ public class Game implements GameInterface {
     }
 
     @Override
+    public String getWinnerId() throws RemoteException {
+        return winnerId.isEmpty() ? "anyone" : winnerId;
+    }
+
+    @Override
     public String battle(String playerId, Weapons weapon, GameMode mode) throws RemoteException {
-        String winnerId = null;
 
         try {
             System.out.println("Let's Go!");
@@ -72,9 +81,11 @@ public class Game implements GameInterface {
                 System.out.println("Aguardando próximo jogador...");
                 conclude = false;
 
+                return "awaitDefense";
+
             } else if (!playersCache.isEmpty() && mode == GameMode.Multiplayer) {
                 if (battle.getDefender() == null) {
-                    battle.setDefender(playersCache.get(0));
+                    battle.setDefender(playersCache.get(1));
                 }
 
                 counterattack = weapon;
@@ -95,14 +106,19 @@ public class Game implements GameInterface {
                 } else {
                     battle.setDrawMatch();
                     System.out.println("Empate Ô_Ô");
+                    winnerId = "draw";
                 }
 
                 conclude = true;
 
                 System.out.println("Ganhador da partida foi: " + winner);
-                winnerId = (winner == Battle.BattlePlayers.Attacker) ?
-                        battle.getAttacker().getId() :
-                        battle.getDefender().getId();
+
+              if(!winnerId.contains("draw")){
+                  winnerId = (winner == Battle.BattlePlayers.Attacker) ?
+                          battle.getAttacker().getId() :
+                          battle.getDefender().getId();
+              }
+
             } else {
                 if (battle.getDefender() == null) {
                     battle.setDefender(new Player());
@@ -128,10 +144,12 @@ public class Game implements GameInterface {
                 } else {
                     battle.setDrawMatch();
                     System.out.println("Empate Ô_Ô");
-                    return "draw";
+                    winnerId = "draw";
                 }
 
                 System.out.println("Ganhador da partida foi: " + winner);
+
+                conclude = true;
 
                 return (winner == Battle.BattlePlayers.Attacker) ?
                         battle.getAttacker().getId() :
@@ -142,7 +160,9 @@ public class Game implements GameInterface {
             e.printStackTrace();
         }
 
-        try { Thread.sleep (50000); } catch (InterruptedException ignored) {}
+        if(!conclude){
+            winnerId = "abandonment";
+        }
 
         return winnerId;
     }

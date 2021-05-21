@@ -25,4 +25,6 @@ public interface GameInterface extends Remote{
 
     //Batalha modo Single
     public String battle(String playerId, Weapons weapon, GameMode mode) throws RemoteException;
+
+    public String getWinnerId()  throws RemoteException;
 }
